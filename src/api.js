@@ -1,12 +1,6 @@
 const { API_URL, REQUEST_TIMEOUT_MS, USER_AGENT } = require("./config");
-const fs = require("fs");
-const path = require("path");
-
-const ROOT = path.join(__dirname, "..");
 
 async function fetchSchedules() {
-    return JSON.parse(fs.readFileSync(path.join(ROOT, "data.json"), "utf8"));
-
     if (!API_URL) throw new Error("API_URL is not set");
 
     const response = await fetch(API_URL, {
@@ -16,7 +10,7 @@ async function fetchSchedules() {
 
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-    var data = response.json;
+    var data = await response.json();
     validateSchedules(data);
 
     return data;
