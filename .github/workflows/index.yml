@@ -10,9 +10,15 @@ permissions:
     pages: write
     id-token: write
 
+concurrency:
+    group: pages
+    cancel-in-progress: false
+
 jobs:
     update:
         runs-on: ubuntu-latest
+        outputs:
+            changed: ${{ steps.commit.outputs.changed }}
 
         steps:
             - uses: actions/checkout@v4
@@ -27,6 +33,7 @@ jobs:
                   API_URL: ${{ vars.API_URL }}
 
             - name: Commit changes
+              id: commit
               run: |
                   if [ -n "$(git status --porcelain data)" ]; then
                     git config user.name "github-actions[bot]"
@@ -34,18 +41,31 @@ jobs:
                     git add data
                     git commit -m "Update outage schedule"
                     git push
+                    echo "changed=true" >> "$GITHUB_OUTPUT"
                   else
                     echo "Nothing to commit."
+                    echo "changed=false" >> "$GITHUB_OUTPUT"
                   fi
 
-            - name: Configure GitHub Pages
-              uses: actions/configure-pages@v5
+    deploy:
+        needs: update
+        # Deploy only when the file changed, or when you run it manually
+        if: needs.update.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
+        runs-on: ubuntu-latest
+        environment:
+            name: github-pages
+            url: ${{ steps.deployment.outputs.page_url }}
 
-            - name: Upload calendar files
-              uses: actions/upload-pages-artifact@v4
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  ref: main # pick up the commit made by the update job
+
+            - uses: actions/configure-pages@v5
+
+            - uses: actions/upload-pages-artifact@v4
               with:
                   path: ./data
 
-            - name: Deploy to GitHub Pages
-              id: deployment
+            - id: deployment
               uses: actions/deploy-pages@v4
