@@ -10,6 +10,5 @@ module.exports = {
     REQUEST_TIMEOUT_MS: 15_000,
     USER_AGENT: "personal-calendar-sync/1.0",
 
-    SLOTS_FILE: path.join(ROOT, "slots.json"),
     ICS_FILE: path.join(ROOT, "data", "outages.ics"),
 };

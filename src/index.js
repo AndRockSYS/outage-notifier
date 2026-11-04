@@ -1,12 +1,12 @@
 const { fetchSchedules } = require("./api");
-const { saveSchedules } = require("./schedule");
+const { formatSchedules } = require("./schedule");
 const { buildIcs } = require("./ics");
 const { readSavedIcs, saveIcs } = require("./storage");
 
 async function main() {
     const raw = await fetchSchedules();
 
-    const schedules = saveSchedules(raw);
+    const schedules = formatSchedules(raw);
     const nextIcs = buildIcs(schedules);
 
     if (readSavedIcs() === nextIcs) {

@@ -1,9 +1,12 @@
-const fs = require("fs");
-const { QUEUE_ID, SLOTS_FILE } = require("./config");
+const { QUEUE_ID } = require("./config");
+
+const SLOT_MINUTES = 30;
+const MINUTES_PER_DAY = 24 * 60;
 
 function formatTime(minutes) {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
+    const wrapped = minutes % MINUTES_PER_DAY;
+    const hours = Math.floor(wrapped / 60);
+    const mins = wrapped % 60;
 
     return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}:00`;
 }
@@ -29,8 +32,8 @@ function buildSequences(series) {
         if (firstId === null) return;
 
         sequences.push({
-            start: formatTime((firstId - 1) * 30),
-            end: formatTime(lastId * 30),
+            start: formatTime((firstId - 1) * SLOT_MINUTES),
+            end: formatTime(lastId * SLOT_MINUTES),
         });
     };
 
@@ -53,15 +56,11 @@ function buildSequences(series) {
     return sequences;
 }
 
-function saveSchedules(schedules) {
-    const formatted = schedules.map((schedule) => ({
+function formatSchedules(schedules) {
+    return schedules.map((schedule) => ({
         day: schedule.from,
         sequences: buildSequences(schedule.series),
     }));
-
-    fs.writeFileSync(SLOTS_FILE, JSON.stringify(formatted, null, 4), "utf8");
-
-    return formatted;
 }
 
-module.exports = { saveSchedules };
+module.exports = { formatSchedules };

@@ -10,7 +10,7 @@ async function fetchSchedules() {
 
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-    var data = await response.json();
+    const data = await response.json();
     validateSchedules(data);
 
     return data;
@@ -24,7 +24,11 @@ function validateSchedules(data) {
     for (const schedule of data) {
         const isValid =
             typeof schedule.from === "string" && Array.isArray(schedule.series);
-        if (!isValid) throw new Error("Unexpected schedule shape");
+        if (!isValid) {
+            throw new Error(
+                `Unexpected schedule shape (keys: ${Object.keys(schedule).join(", ")})`,
+            );
+        }
     }
 }
 
